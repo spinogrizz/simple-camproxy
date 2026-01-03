@@ -5,9 +5,39 @@ import { logger } from '../utils/logger.js';
 export function createCameraRoutes(cameraManager, cacheService, imageService, authService, snapshotStorage) {
   const router = express.Router();
 
+  function parseCropParam(cropParam) {
+    if (!cropParam) {
+      return null;
+    }
+
+    const raw = Array.isArray(cropParam) ? cropParam[0] : cropParam;
+    if (typeof raw !== 'string') {
+      throw new Error('Invalid crop parameter. Use crop=x,y,w,h');
+    }
+
+    const parts = raw.split(',').map(part => part.trim());
+    if (parts.length !== 4) {
+      throw new Error('Invalid crop parameter. Use crop=x,y,w,h');
+    }
+
+    const values = parts.map(value => Number(value));
+    if (values.some(value => !Number.isFinite(value) || !Number.isInteger(value))) {
+      throw new Error('Invalid crop parameter. Use crop=x,y,w,h');
+    }
+
+    const [left, top, width, height] = values;
+    if (left < 0 || top < 0 || width <= 0 || height <= 0) {
+      throw new Error('Invalid crop parameter. Use crop=x,y,w,h');
+    }
+
+    return { left, top, width, height, key: `${left},${top},${width},${height}` };
+  }
+
   router.get('/:unique_link/camera/:id/:quality', authMiddleware(authService), async (req, res, next) => {
     try {
       const { id, quality } = req.params;
+      const crop = parseCropParam(req.query.crop);
+      const cropKey = crop ? crop.key : null;
 
       // Валидация качества
       const validQualities = ['low', 'medium', 'high'];
@@ -21,14 +51,16 @@ export function createCameraRoutes(cameraManager, cacheService, imageService, au
       }
 
       // Проверяем кэш
-      const cached = cacheService.get(id, quality);
-      if (cached) {
-        logger.debug(`Cache hit: ${id}:${quality}`);
-        res.setHeader('Content-Type', 'image/jpeg');
-        res.setHeader('X-Cache', 'HIT');
-        res.setHeader('X-Camera-Id', id);
-        res.setHeader('X-Quality', quality);
-        return res.send(cached);
+      if (!crop) {
+        const cached = cacheService.get(id, quality, cropKey);
+        if (cached) {
+          logger.debug(`Cache hit: ${id}:${quality}`);
+          res.setHeader('Content-Type', 'image/jpeg');
+          res.setHeader('X-Cache', 'HIT');
+          res.setHeader('X-Camera-Id', id);
+          res.setHeader('X-Quality', quality);
+          return res.send(cached);
+        }
       }
 
       // Получаем снимок с камеры
@@ -36,13 +68,15 @@ export function createCameraRoutes(cameraManager, cacheService, imageService, au
       const rawSnapshot = await cameraManager.getSnapshot(id);
 
       // Обрабатываем изображение (для high - возвращается as is)
-      const processedSnapshot = await imageService.processImage(rawSnapshot, quality);
+      const processedSnapshot = await imageService.processImage(rawSnapshot, quality, crop);
 
       // Кэшируем
-      cacheService.set(id, quality, processedSnapshot);
+      if (!crop) {
+        cacheService.set(id, quality, cropKey, processedSnapshot);
+      }
 
       // Сохраняем в файл для preview
-      if (snapshotStorage) {
+      if (snapshotStorage && !crop) {
         snapshotStorage.save(id, quality, processedSnapshot).catch(err => {
           logger.error('Failed to save snapshot to storage:', err.message);
         });

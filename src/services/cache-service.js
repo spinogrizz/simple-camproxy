@@ -16,17 +16,17 @@ export class CacheService {
     logger.info('Cache service initialized with TTL:', this.cache.options.stdTTL, 'seconds');
   }
 
-  getCacheKey(cameraId, quality) {
-    return `${cameraId}:${quality}`;
+  getCacheKey(cameraId, quality, cropKey) {
+    return cropKey ? `${cameraId}:${quality}:crop=${cropKey}` : `${cameraId}:${quality}`;
   }
 
-  get(cameraId, quality) {
-    const key = this.getCacheKey(cameraId, quality);
+  get(cameraId, quality, cropKey) {
+    const key = this.getCacheKey(cameraId, quality, cropKey);
     return this.cache.get(key);
   }
 
-  set(cameraId, quality, imageBuffer) {
-    const key = this.getCacheKey(cameraId, quality);
+  set(cameraId, quality, cropKey, imageBuffer) {
+    const key = this.getCacheKey(cameraId, quality, cropKey);
     this.cache.set(key, imageBuffer);
     logger.debug(`Cached: ${key}`);
   }

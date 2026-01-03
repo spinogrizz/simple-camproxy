@@ -7,11 +7,32 @@ export class ImageService {
     logger.info('Image service initialized');
   }
 
-  async processImage(imageBuffer, quality) {
+  async processImage(imageBuffer, quality, crop) {
+    const image = sharp(imageBuffer);
+
+    if (crop) {
+      const metadata = await image.metadata();
+      if (!metadata.width || !metadata.height) {
+        throw new Error('Invalid image');
+      }
+
+      const { left, top, width, height } = crop;
+      if (left + width > metadata.width || top + height > metadata.height) {
+        throw new Error('Invalid crop parameter: out of bounds');
+      }
+
+      image.extract({ left, top, width, height });
+    }
+
     // High quality = возвращаем как есть
     if (quality === 'high') {
-      logger.debug('Quality: high (as is, no processing)');
-      return imageBuffer;
+      if (!crop) {
+        logger.debug('Quality: high (as is, no processing)');
+        return imageBuffer;
+      }
+
+      logger.debug('Quality: high with crop (no resize)');
+      return image.toBuffer();
     }
 
     // Получаем пресет для low/medium
@@ -23,7 +44,7 @@ export class ImageService {
     try {
       logger.debug(`Processing image with quality: ${quality} (${preset.maxWidth}x${preset.maxHeight}, q:${preset.quality})`);
 
-      const processed = await sharp(imageBuffer)
+      const processed = await image
         .resize(preset.maxWidth, preset.maxHeight, {
           fit: 'inside',  // Сохраняем пропорции
           withoutEnlargement: true  // Не увеличиваем меньшие изображения
