@@ -1,0 +1,30 @@
+{
+  "name": "camproxy",
+  "version": "1.0.0",
+  "description": "Proxy server for IP cameras with caching and quality presets",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "NODE_ENV=development LOG_LEVEL=debug node --watch src/index.js"
+  },
+  "keywords": [
+    "camera",
+    "proxy",
+    "unifi",
+    "reolink",
+    "snapshot"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.2",
+    "sharp": "^0.33.1",
+    "node-cache": "^5.1.2",
+    "js-yaml": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

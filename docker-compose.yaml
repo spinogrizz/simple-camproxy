@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  camproxy:
+    build: .
+    container_name: camproxy
+    ports:
+      - "3000:3000"
+    volumes:
+      # Монтируем конфигурационные файлы (read-only)
+      # :z - для SELinux систем (Fedora, RHEL, CentOS)
+      - ./config:/config:ro,z
+    environment:
+      - NODE_ENV=production
+      - CONFIG_PATH=/config
+      - LOG_LEVEL=info
+      - PORT=3000
+    restart: unless-stopped
+    networks:
+      - camproxy-network
+    # Опционально: ограничение ресурсов
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+networks:
+  camproxy-network:
+    driver: bridge

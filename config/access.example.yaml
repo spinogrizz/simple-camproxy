@@ -1,0 +1,18 @@
+users:
+  # Администратор с доступом ко всем камерам
+  - username: admin
+    password: secure-admin-password
+    allowedCameras: '*'
+
+  # Пользователь с доступом к нескольким камерам
+  - username: user1
+    password: user1-password
+    allowedCameras:
+      - unifi-front
+      - reolink-garage
+
+  # Пользователь с доступом только к одной камере
+  - username: guest
+    password: guest-password
+    allowedCameras:
+      - unifi-front
