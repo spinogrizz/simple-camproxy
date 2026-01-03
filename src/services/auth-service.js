@@ -48,7 +48,7 @@ export class AuthService {
           try {
             const range = ipaddr.parseCIDR(rule);
             if (addr.match(range)) {
-              logger.info(`[ACCESS GRANTED] User: ${user.name}, IP: ${cleanIp} matched CIDR: ${rule}`);
+              logger.debug(`[ACCESS GRANTED] User: ${user.name}, IP: ${cleanIp} matched CIDR: ${rule}`);
               return true;
             }
           } catch (error) {
@@ -60,7 +60,7 @@ export class AuthService {
           try {
             const ruleAddr = ipaddr.process(rule);
             if (addr.toString() === ruleAddr.toString()) {
-              logger.info(`[ACCESS GRANTED] User: ${user.name}, IP: ${cleanIp} matched IP: ${rule}`);
+              logger.debug(`[ACCESS GRANTED] User: ${user.name}, IP: ${cleanIp} matched IP: ${rule}`);
               return true;
             }
           } catch (error) {
