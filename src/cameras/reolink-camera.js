@@ -6,12 +6,13 @@ export async function fetchReolinkSnapshot(config, camera) {
     // Используем локальные credentials или глобальные
     const username = camera.username || config.reolink?.username;
     const password = camera.password || config.reolink?.password;
+    const channel = camera.channel || 0;
 
     if (!username || !password) {
       throw new Error('Reolink credentials not configured');
     }
 
-    const url = `http://${camera.host}/cgi-bin/api.cgi?cmd=Snap&channel=0&user=${username}&password=${password}`;
+    const url = `http://${camera.host}/cgi-bin/api.cgi?cmd=Snap&channel=${camera.channel}&user=${username}&password=${password}`;
 
     logger.debug(`Fetching Reolink snapshot from ${camera.host}`);
 
