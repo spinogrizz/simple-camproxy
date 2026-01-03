@@ -5,8 +5,7 @@ import { CacheService } from './services/cache-service.js';
 import { ImageService } from './services/image-service.js';
 import { AuthService } from './services/auth-service.js';
 import { SnapshotStorage } from './services/snapshot-storage.js';
-import { localIpMiddleware } from './middleware/local-ip.js';
-import { authMiddleware } from './middleware/auth.js';
+import { ipExtractorMiddleware } from './middleware/local-ip.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { createCameraRoutes } from './routes/camera-routes.js';
 import { createWebRoutes } from './routes/web-routes.js';
@@ -32,7 +31,7 @@ async function main() {
 
     // Глобальные middleware
     app.use(express.json());
-    app.use(localIpMiddleware());
+    app.use(ipExtractorMiddleware());
 
     // Статические файлы для веб-интерфейса (защищены авторизацией)
     app.use(express.static('src/public', {
@@ -42,8 +41,8 @@ async function main() {
       }
     }));
 
-    // Роуты
-    app.use('/camera', createCameraRoutes(cameraManager, cacheService, imageService, authService, snapshotStorage));
+    // Роуты (префиксы указаны в самих роутах)
+    app.use('/', createCameraRoutes(cameraManager, cacheService, imageService, authService, snapshotStorage));
     app.use('/', createWebRoutes(cameraManager, authService));
 
     // Health check endpoint (без авторизации)

@@ -1,48 +1,86 @@
-import crypto from 'crypto';
+import ipaddr from 'ipaddr.js';
 import { logger } from '../utils/logger.js';
 
 export class AuthService {
   constructor(accessConfig) {
     this.users = new Map();
 
-    // Загружаем пользователей и хешируем пароли
+    // Загружаем пользователей по unique_link
     accessConfig.users.forEach(user => {
-      this.users.set(user.username, {
-        passwordHash: this.hashPassword(user.password),
-        allowedCameras: user.allowedCameras || '*'
+      this.users.set(user.unique_link, {
+        unique_link: user.unique_link,
+        name: user.name || user.unique_link,
+        refreshInterval: user.refreshInterval || 5000,
+        quality: user.quality || 'medium',
+        allowedCameras: user.allowedCameras || 'all',
+        allowFromIPs: user.allowFromIPs || []
       });
     });
 
     logger.info(`Auth service initialized with ${this.users.size} users`);
   }
 
-  hashPassword(password) {
-    return crypto.createHash('sha256').update(password).digest('hex');
-  }
-
-  authenticate(username, password) {
-    const user = this.users.get(username);
+  getUserByLink(link) {
+    const user = this.users.get(link);
     if (!user) {
-      logger.debug(`Authentication failed: user "${username}" not found`);
+      logger.debug(`User not found for link: ${link}`);
       return null;
     }
+    return user;
+  }
 
-    const passwordHash = this.hashPassword(password);
-    if (passwordHash === user.passwordHash) {
-      logger.debug(`Authentication successful: ${username}`);
-      return {
-        username,
-        allowedCameras: user.allowedCameras
-      };
+  checkIpAccess(user, clientIp) {
+    if (!user.allowFromIPs || user.allowFromIPs.length === 0) {
+      logger.warn(`[ACCESS DENIED] No IP restrictions configured for user ${user.name} (IP: ${clientIp})`);
+      return false;
     }
 
-    logger.warn(`Authentication failed: invalid password for user "${username}"`);
-    return null;
+    // Убираем IPv6 префикс если есть
+    const cleanIp = clientIp.replace(/^::ffff:/, '');
+    logger.debug(`[ACCESS CHECK] User: ${user.name}, IP: ${cleanIp}, Rules: ${user.allowFromIPs.join(', ')}`);
+
+    try {
+      const addr = ipaddr.process(cleanIp);
+
+      for (const rule of user.allowFromIPs) {
+        // Проверяем CIDR нотацию
+        if (rule.includes('/')) {
+          try {
+            const range = ipaddr.parseCIDR(rule);
+            if (addr.match(range)) {
+              logger.info(`[ACCESS GRANTED] User: ${user.name}, IP: ${cleanIp} matched CIDR: ${rule}`);
+              return true;
+            }
+          } catch (error) {
+            logger.error(`Invalid CIDR notation: ${rule}`, error.message);
+            continue;
+          }
+        } else {
+          // Проверяем точное совпадение IP
+          try {
+            const ruleAddr = ipaddr.process(rule);
+            if (addr.toString() === ruleAddr.toString()) {
+              logger.info(`[ACCESS GRANTED] User: ${user.name}, IP: ${cleanIp} matched IP: ${rule}`);
+              return true;
+            }
+          } catch (error) {
+            logger.error(`Invalid IP address: ${rule}`, error.message);
+            continue;
+          }
+        }
+      }
+
+      logger.warn(`[ACCESS DENIED] User: ${user.name}, IP: ${cleanIp} not in allowed list: [${user.allowFromIPs.join(', ')}]`);
+      return false;
+    } catch (error) {
+      logger.error(`[ACCESS DENIED] Failed to parse client IP ${cleanIp} for user ${user.name}:`, error.message);
+      return false;
+    }
   }
 
   isAuthorized(user, cameraId) {
-    // Пользователь с правами '*' имеет доступ ко всем камерам
-    if (user.allowedCameras === '*') {
+    // Пользователь с правами 'all' имеет доступ ко всем камерам
+    if (user.allowedCameras === 'all') {
       return true;
     }
 
@@ -52,26 +90,5 @@ export class AuthService {
     }
 
     return false;
-  }
-
-  parseBasicAuth(authHeader) {
-    if (!authHeader || !authHeader.startsWith('Basic ')) {
-      return null;
-    }
-
-    try {
-      const base64Credentials = authHeader.substring(6);
-      const credentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
-      const [username, password] = credentials.split(':');
-
-      if (!username || !password) {
-        return null;
-      }
-
-      return { username, password };
-    } catch (error) {
-      logger.error('Failed to parse Basic Auth header:', error.message);
-      return null;
-    }
   }
 }

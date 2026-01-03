@@ -71,15 +71,31 @@ export function validateAccessConfig(config) {
   }
 
   config.users.forEach((user, idx) => {
-    if (!user.username || !user.password) {
-      throw new Error(`access.yaml: User at index ${idx} missing username or password`);
+    // Проверяем обязательные поля
+    if (!user.unique_link) {
+      throw new Error(`access.yaml: User at index ${idx} missing unique_link`);
     }
 
-    // allowedCameras может быть '*' или массивом
+    // allowedCameras может быть 'all' или массивом
     if (user.allowedCameras &&
-        user.allowedCameras !== '*' &&
+        user.allowedCameras !== 'all' &&
         !Array.isArray(user.allowedCameras)) {
-      throw new Error(`access.yaml: User "${user.username}" allowedCameras must be '*' or array`);
+      throw new Error(`access.yaml: User "${user.unique_link}" allowedCameras must be 'all' or array`);
+    }
+
+    // allowFromIPs должен быть массивом
+    if (user.allowFromIPs && !Array.isArray(user.allowFromIPs)) {
+      throw new Error(`access.yaml: User "${user.unique_link}" allowFromIPs must be an array`);
+    }
+
+    // refreshInterval должен быть числом если указан
+    if (user.refreshInterval && typeof user.refreshInterval !== 'number') {
+      throw new Error(`access.yaml: User "${user.unique_link}" refreshInterval must be a number`);
+    }
+
+    // quality должен быть одним из допустимых значений
+    if (user.quality && !['low', 'medium', 'high'].includes(user.quality)) {
+      throw new Error(`access.yaml: User "${user.unique_link}" quality must be one of: low, medium, high`);
     }
   });
 

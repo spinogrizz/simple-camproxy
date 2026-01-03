@@ -18,11 +18,12 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
     "axios": "^1.6.2",
-    "sharp": "^0.33.1",
+    "express": "^4.18.2",
+    "ipaddr.js": "^2.3.0",
+    "js-yaml": "^4.1.0",
     "node-cache": "^5.1.2",
-    "js-yaml": "^4.1.0"
+    "sharp": "^0.33.1"
   },
   "engines": {
     "node": ">=20.0.0"

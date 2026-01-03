@@ -1,18 +1,33 @@
 users:
-  # Администратор с доступом ко всем камерам
-  - username: admin
-    password: secure-admin-password
-    allowedCameras: '*'
+  # Родители - доступ ко всем камерам с низким качеством и редкими обновлениями
+  - unique_link: abc123def456ghi789jkl012
+    name: Мама и Папа      # Имя для логов (опционально)
+    refreshInterval: 5000  # Обновление каждые 5 секунд (в миллисекундах)
+    quality: medium        # Качество изображения: low, medium, high
+    allowedCameras: all    # Доступ ко всем камерам (или список ID камер)
+    allowFromIPs:
+      - 192.168.1.0/24     # Локальная сеть (CIDR нотация)
+      - 10.0.0.0/8         # Другая локальная сеть
 
   # Пользователь с доступом к нескольким камерам
-  - username: user1
-    password: user1-password
+  - unique_link: mno345pqr678stu901vwx234
+    name: Василий
+    refreshInterval: 3000  # Обновление каждые 3 секунды
+    quality: low
     allowedCameras:
       - unifi-front
       - reolink-garage
+    allowFromIPs:
+      - 192.168.1.100      # Конкретный IP адрес
+      - 192.168.1.101
+      - 172.16.0.0/12      # CIDR маска
 
-  # Пользователь с доступом только к одной камере
-  - username: guest
-    password: guest-password
+  # Гость с доступом только к одной камере
+  - unique_link: yz4567890abcdef123ghijkl
+    name: Гость
+    refreshInterval: 10000  # Редкие обновления для экономии трафика
+    quality: low
     allowedCameras:
       - unifi-front
+    allowFromIPs:
+      - 0.0.0.0/0          # Доступ с любого IP (небезопасно, только для примера!)

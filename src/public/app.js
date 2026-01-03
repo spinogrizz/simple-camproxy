@@ -3,10 +3,24 @@ class CameraBoard {
     this.cameras = [];
     this.quality = 'medium';
     this.refreshInterval = null;
+    this.refreshIntervalMs = 5000;
+    this.uniqueLink = this.extractUniqueLink();
     this.init();
   }
 
+  extractUniqueLink() {
+    // Извлекаем unique_link из pathname (первый сегмент после /)
+    const path = window.location.pathname;
+    const segments = path.split('/').filter(s => s.length > 0);
+    return segments[0] || '';
+  }
+
   async init() {
+    if (!this.uniqueLink) {
+      console.error('No unique link found in URL');
+      return;
+    }
+
     await this.loadCameras();
     this.setupEventListeners();
     this.renderCameras();
@@ -15,11 +29,11 @@ class CameraBoard {
 
   async loadCameras() {
     try {
-      const response = await fetch('/api/cameras');
+      const response = await fetch(`/${this.uniqueLink}/api/cameras`);
 
       if (!response.ok) {
-        if (response.status === 401) {
-          console.error('Unauthorized - authentication required');
+        if (response.status === 403) {
+          console.error('Access denied - invalid link or IP address');
           return;
         }
         throw new Error(`Failed to load cameras: ${response.status}`);
@@ -27,6 +41,12 @@ class CameraBoard {
 
       const data = await response.json();
       this.cameras = data.cameras;
+
+      // Получаем настройки из API
+      if (data.settings) {
+        this.quality = data.settings.quality || 'medium';
+        this.refreshIntervalMs = data.settings.refreshInterval || 5000;
+      }
     } catch (error) {
       console.error('Failed to load cameras:', error);
     }
@@ -74,7 +94,7 @@ class CameraBoard {
       return;
     }
 
-    const url = `/camera/${cameraId}/${this.quality}/preview`;
+    const url = `/${this.uniqueLink}/camera/${cameraId}/${this.quality}/preview`;
 
     try {
       const response = await fetch(url);
@@ -117,7 +137,7 @@ class CameraBoard {
     }
 
     try {
-      const url = `/camera/${cameraId}/${this.quality}?t=${Date.now()}`;
+      const url = `/${this.uniqueLink}/camera/${cameraId}/${this.quality}?t=${Date.now()}`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -216,7 +236,7 @@ class CameraBoard {
     this.stopAutoRefresh();
     this.refreshInterval = setInterval(() => {
       this.refreshAllCameras();
-    }, 5000);
+    }, this.refreshIntervalMs);
   }
 
   stopAutoRefresh() {

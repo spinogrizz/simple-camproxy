@@ -2,39 +2,34 @@ import { logger } from '../utils/logger.js';
 
 export function authMiddleware(authService) {
   return (req, res, next) => {
-    // Пропускаем локальные IP без авторизации
-    if (req.isLocalIp) {
-      req.user = {
-        username: 'local',
-        allowedCameras: '*',
-        isLocal: true
-      };
-      logger.debug(`Local IP ${req.clientIp} authenticated as 'local' user`);
-      return next();
+    // Извлекаем unique_link из параметров роута
+    const uniqueLink = req.params.unique_link;
+    const clientIp = req.clientIp;
+
+    if (!uniqueLink) {
+      logger.warn(`[AUTH FAILED] No unique_link in request params (IP: ${clientIp})`);
+      return sendAccessDenied(res, 'Invalid link');
     }
 
-    // Проверяем Basic Auth
-    const authHeader = req.headers.authorization;
-    const credentials = authService.parseBasicAuth(authHeader);
-
-    if (!credentials) {
-      logger.debug('No valid Basic Auth credentials provided');
-      return sendAuthRequired(res);
-    }
-
-    const user = authService.authenticate(credentials.username, credentials.password);
+    // Получаем пользователя по unique_link
+    const user = authService.getUserByLink(uniqueLink);
 
     if (!user) {
-      logger.warn(`Failed authentication attempt from ${req.clientIp}: ${credentials.username}`);
-      return sendAuthRequired(res);
+      logger.warn(`[AUTH FAILED] User not found for link: ${uniqueLink} (IP: ${clientIp})`);
+      return sendAccessDenied(res, 'Invalid link');
     }
 
-    req.user = { ...user, isLocal: false };
+    // Проверяем IP доступ (логирование внутри checkIpAccess)
+    if (!authService.checkIpAccess(user, clientIp)) {
+      return sendAccessDenied(res, 'Access denied from your IP address');
+    }
+
+    // Аутентификация успешна
+    req.user = user;
     next();
   };
 }
 
-function sendAuthRequired(res) {
-  res.setHeader('WWW-Authenticate', 'Basic realm="camproxy"');
-  res.status(401).json({ error: 'Authentication required' });
+function sendAccessDenied(res, message) {
+  res.status(403).json({ error: message });
 }

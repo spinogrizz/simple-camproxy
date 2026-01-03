@@ -5,10 +5,7 @@ import { logger } from '../utils/logger.js';
 export function createCameraRoutes(cameraManager, cacheService, imageService, authService, snapshotStorage) {
   const router = express.Router();
 
-  // Применяем auth middleware для всех роутов камер
-  router.use(authMiddleware(authService));
-
-  router.get('/:id/:quality', async (req, res, next) => {
+  router.get('/:unique_link/camera/:id/:quality', authMiddleware(authService), async (req, res, next) => {
     try {
       const { id, quality } = req.params;
 
@@ -35,7 +32,7 @@ export function createCameraRoutes(cameraManager, cacheService, imageService, au
       }
 
       // Получаем снимок с камеры
-      logger.info(`Fetching snapshot: ${id}:${quality} for user ${req.user.username}`);
+      logger.info(`Fetching snapshot: ${id}:${quality} for user ${req.user.name}`);
       const rawSnapshot = await cameraManager.getSnapshot(id);
 
       // Обрабатываем изображение (для high - возвращается as is)
@@ -64,7 +61,7 @@ export function createCameraRoutes(cameraManager, cacheService, imageService, au
   });
 
   // Preview endpoint - возвращает последний сохраненный снапшот (для начального отображения)
-  router.get('/:id/:quality/preview', async (req, res, next) => {
+  router.get('/:unique_link/camera/:id/:quality/preview', authMiddleware(authService), async (req, res, next) => {
     try {
       const { id, quality } = req.params;
 
