@@ -13,8 +13,9 @@ services:
     environment:
       - NODE_ENV=production
       - CONFIG_PATH=/config
-      - LOG_LEVEL=info
+      - LOG_LEVEL=debug
       - PORT=3000
+      - TRUST_PROXY=1
     restart: unless-stopped
     networks:
       - camproxy-network

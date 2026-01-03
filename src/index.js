@@ -29,6 +29,17 @@ async function main() {
     const app = express();
     const PORT = process.env.PORT || 3000;
 
+    const trustProxyIps = process.env.TRUST_PROXY_IPS;
+    const trustProxyFlag = process.env.TRUST_PROXY;
+    if (trustProxyIps && trustProxyIps.trim()) {
+      const proxyList = trustProxyIps.split(',').map(item => item.trim()).filter(Boolean);
+      app.set('trust proxy', proxyList);
+      logger.info(`Trust proxy enabled for: ${proxyList.join(', ')}`);
+    } else if (trustProxyFlag && trustProxyFlag !== '0' && trustProxyFlag.toLowerCase() !== 'false') {
+      app.set('trust proxy', true);
+      logger.info('Trust proxy enabled');
+    }
+
     // Глобальные middleware
     app.use(express.json());
     app.use(ipExtractorMiddleware());

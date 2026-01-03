@@ -5,11 +5,16 @@ export function ipExtractorMiddleware() {
     const ip = getClientIp(req);
     req.clientIp = ip;
     logger.debug(`Request from ${ip}`);
+    logger.debug(`Proxy headers: x-forwarded-for=${req.headers['x-forwarded-for'] || 'none'}; x-real-ip=${req.headers['x-real-ip'] || 'none'}; forwarded=${req.headers['forwarded'] || 'none'}`);
     next();
   };
 }
 
 function getClientIp(req) {
+  if (req.app && req.app.get('trust proxy')) {
+    return req.ip;
+  }
+
   // Проверяем заголовки прокси (для работы за nginx proxy manager и т.д.)
   const forwarded = req.headers['x-forwarded-for'];
   if (forwarded) {
