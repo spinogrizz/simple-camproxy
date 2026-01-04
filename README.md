@@ -9,8 +9,8 @@ Proxy server for IP cameras. Takes snapshots from UniFi Protect and Reolink came
 
 - Multi-camera support (UniFi Protect, Reolink)
 - Quality presets (low/medium/high)
-- Local IP bypass (no auth needed from 192.168.x.x, 10.x.x.x, 127.0.0.1)
-- Per-user access control
+- Local IP bypass (no auth needed from 192.168.x.x, etc)
+- Per-user access control via unique links
 - Web dashboard with live feed
 
 ## Configuration
@@ -33,18 +33,6 @@ reolink:
   username: admin
   password: password
 
-qualities:
-  low:
-    maxWidth: 640
-    maxHeight: 480
-    quality: 60
-  medium:
-    maxWidth: 1280
-    maxHeight: 720
-    quality: 75
-  high:
-    # original quality
-
 cameras:
   - id: front-door
     name: Front Door
@@ -61,12 +49,12 @@ Edit access.yaml for users:
 
 ```yaml
 users:
-  - username: admin
-    password: password
+  - unique_link: admin-secret-link
+    name: Admin
     allowedCameras: '*'
 
-  - username: user1
-    password: password
+  - unique_link: user1-unique-link
+    name: User 1
     allowedCameras:
       - front-door
       - garage
@@ -75,13 +63,13 @@ users:
 ## Docker
 
 ```bash
-docker-compose up -d
+docker run -d -p 3000:3000 -v $(pwd)/config:/config:ro spinogrizz/simple-camproxy:latest
 ```
 
-Or manually:
+Or with docker-compose:
 
 ```bash
-docker run -d -p 3000:3000 -v $(pwd)/config:/config:ro camproxy
+docker-compose up -d
 ```
 
 ## API
@@ -90,22 +78,24 @@ Get snapshot:
 ```
 GET /camera/:id/:quality
 GET /camera/:id/:quality?crop=x,y,width,height
+GET /:unique_link/camera/:id/:quality
 ```
 
 Get camera list:
 ```
 GET /api/cameras
+GET /:unique_link/api/cameras
 ```
 
 Examples:
 ```bash
 curl http://localhost:3000/camera/front-door/medium > snapshot.jpg
 curl http://localhost:3000/camera/garage/low?crop=100,100,800,600 > cropped.jpg
-curl -u admin:password http://server:3000/camera/front-door/high > snapshot.jpg
-curl http://localhost:3000/api/cameras
+curl http://server:3000/admin-secret-link/camera/front-door/high > snapshot.jpg
+curl http://localhost:3000/admin-secret-link/api/cameras
 ```
 
-## Parameters
+#### Parameters
 
 - `id` - camera ID from config
 - `quality` - low, medium, high
@@ -117,6 +107,3 @@ curl http://localhost:3000/api/cameras
 - `CONFIG_PATH` - config directory (default: ./config)
 - `LOG_LEVEL` - debug, info, warn, error (default: info)
 
-## License
-
-MIT
