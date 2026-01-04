@@ -1,8 +1,8 @@
-# camproxy
+# simple-camproxy
 
 Proxy server for IP cameras. Takes snapshots from UniFi Protect and Reolink cameras, resizes them, and caches results. Built for home automation dashboards and remote access.
 
-<a href="sample.jpg"><img src="sample.jpg" align="left" width="400" alt="Example"></a>
+<a href="sample.jpg"><img src="sample.jpg" align="left" width="150" alt="Example"></a>
 <br clear="left">
 
 ## Features
