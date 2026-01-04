@@ -3,7 +3,7 @@ import { logger } from '../utils/logger.js';
 
 export async function fetchReolinkSnapshot(config, camera) {
   try {
-    // Используем локальные credentials или глобальные
+    // Use local credentials or global
     const username = camera.username || config.reolink?.username;
     const password = camera.password || config.reolink?.password;
     const channel = camera.channel || 0;

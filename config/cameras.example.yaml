@@ -1,14 +1,14 @@
-# Глобальные настройки для UniFi Protect
+# Global UniFi Protect settings
 unifi:
   baseUrl: https://10.42.0.1
   apiKey: your-unifi-api-key-here
 
-# Глобальные настройки для Reolink (опционально, можно указать в каждой камере)
+# Global Reolink settings (optional, can be set per camera)
 reolink:
   username: admin
   password: reolink-password
 
-# Глобальные пресеты качества
+# Global quality presets
 qualities:
   low:
     maxWidth: 640
@@ -19,29 +19,29 @@ qualities:
     maxHeight: 720
     quality: 75
   high:
-    # High = as is, без обработки изображения
+    # High = as is, no image processing
 
-# Список камер
+# Camera list
 cameras:
-  # UniFi Protect камера
+  # UniFi Protect camera
   - id: unifi-front
     name: Front Door
     type: unifi
     cameraId: 64f3a2b1c5e8f90012345678
 
-  # UniFi Protect камера
+  # UniFi Protect camera
   - id: unifi-backyard
     name: Backyard
     type: unifi
     cameraId: 64f3a2b1c5e8f90012345679
 
-  # Reolink камера (использует глобальные username/password)
+  # Reolink camera (uses global username/password)
   - id: reolink-garage
     name: Garage
     type: reolink
     host: 192.168.1.101
 
-  # Reolink камера с локальными credentials
+  # Reolink camera with local credentials
   - id: reolink-driveway
     name: Driveway
     type: reolink

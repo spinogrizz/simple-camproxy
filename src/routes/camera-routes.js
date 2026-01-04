@@ -39,18 +39,18 @@ export function createCameraRoutes(cameraManager, cacheService, imageService, au
       const crop = parseCropParam(req.query.crop);
       const cropKey = crop ? crop.key : null;
 
-      // Валидация качества
+      // Validate quality
       const validQualities = ['low', 'medium', 'high'];
       if (!validQualities.includes(quality)) {
         throw new Error(`Invalid quality parameter. Must be one of: ${validQualities.join(', ')}`);
       }
 
-      // Проверяем права доступа к камере
+      // Check camera access
       if (!authService.isAuthorized(req.user, id)) {
         throw new Error(`Unauthorized: No access to camera "${id}"`);
       }
 
-      // Проверяем кэш
+      // Check cache
       if (!crop) {
         const cached = cacheService.get(id, quality, cropKey);
         if (cached) {
@@ -63,26 +63,26 @@ export function createCameraRoutes(cameraManager, cacheService, imageService, au
         }
       }
 
-      // Получаем снимок с камеры
+      // Get snapshot from camera
       logger.info(`Fetching snapshot: ${id}:${quality} for user ${req.user.name}`);
       const rawSnapshot = await cameraManager.getSnapshot(id);
 
-      // Обрабатываем изображение (для high - возвращается as is)
+      // Process image (high quality returns as is)
       const processedSnapshot = await imageService.processImage(rawSnapshot, quality, crop);
 
-      // Кэшируем
+      // Cache result
       if (!crop) {
         cacheService.set(id, quality, cropKey, processedSnapshot);
       }
 
-      // Сохраняем в файл для preview
+      // Save to file for preview
       if (snapshotStorage && !crop) {
         snapshotStorage.save(id, quality, processedSnapshot).catch(err => {
           logger.error('Failed to save snapshot to storage:', err.message);
         });
       }
 
-      // Отправляем ответ
+      // Send response
       res.setHeader('Content-Type', 'image/jpeg');
       res.setHeader('X-Cache', 'MISS');
       res.setHeader('X-Camera-Id', id);
@@ -94,23 +94,23 @@ export function createCameraRoutes(cameraManager, cacheService, imageService, au
     }
   });
 
-  // Preview endpoint - возвращает последний сохраненный снапшот (для начального отображения)
+  // Preview endpoint - returns last saved snapshot (for initial display)
   router.get('/:unique_link/camera/:id/:quality/preview', authMiddleware(authService), async (req, res, next) => {
     try {
       const { id, quality } = req.params;
 
-      // Валидация качества
+      // Validate quality
       const validQualities = ['low', 'medium', 'high'];
       if (!validQualities.includes(quality)) {
         throw new Error(`Invalid quality parameter. Must be one of: ${validQualities.join(', ')}`);
       }
 
-      // Проверяем права доступа к камере
+      // Check camera access
       if (!authService.isAuthorized(req.user, id)) {
         throw new Error(`Unauthorized: No access to camera "${id}"`);
       }
 
-      // Загружаем из storage
+      // Load from storage
       if (snapshotStorage) {
         const snapshot = await snapshotStorage.load(id, quality);
         if (snapshot) {
@@ -123,7 +123,7 @@ export function createCameraRoutes(cameraManager, cacheService, imageService, au
         }
       }
 
-      // Если нет в storage - возвращаем 404
+      // If not in storage - return 404
       res.status(404).json({ error: 'Preview not available' });
 
     } catch (error) {

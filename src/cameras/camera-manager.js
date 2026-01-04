@@ -7,7 +7,7 @@ export class CameraManager {
     this.config = config;
     this.cameras = new Map();
 
-    // Создаем Map камер для быстрого доступа
+    // Create camera map for quick access
     config.cameras.forEach(camera => {
       this.cameras.set(camera.id, camera);
     });
@@ -24,7 +24,7 @@ export class CameraManager {
 
     logger.debug(`Getting snapshot for camera: ${id} (${camera.type})`);
 
-    // Роутинг к соответствующей функции в зависимости от типа камеры
+    // Route to appropriate function based on camera type
     if (camera.type === 'unifi') {
       return fetchUnifiSnapshot(this.config, camera.cameraId);
     } else if (camera.type === 'reolink') {

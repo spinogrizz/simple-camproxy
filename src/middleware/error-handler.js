@@ -4,7 +4,7 @@ export function errorHandler(err, req, res, next) {
   logger.error('Error:', err.message);
   logger.debug('Error stack:', err.stack);
 
-  // Определяем тип ошибки и соответствующий HTTP код
+  // Determine error type and corresponding HTTP code
   if (err.message.includes('unavailable')) {
     return res.status(503).json({
       error: 'Camera unavailable',
@@ -33,7 +33,7 @@ export function errorHandler(err, req, res, next) {
     });
   }
 
-  // Общая ошибка сервера
+  // Generic server error
   res.status(500).json({
     error: 'Internal server error',
     message: process.env.NODE_ENV === 'production'

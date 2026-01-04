@@ -9,7 +9,7 @@ class CameraBoard {
   }
 
   extractUniqueLink() {
-    // Извлекаем unique_link из pathname (первый сегмент после /)
+    // Extract unique_link from pathname (first segment after /)
     const path = window.location.pathname;
     const segments = path.split('/').filter(s => s.length > 0);
     return segments[0] || '';
@@ -42,7 +42,7 @@ class CameraBoard {
       const data = await response.json();
       this.cameras = data.cameras;
 
-      // Получаем настройки из API
+      // Get settings from API
       if (data.settings) {
         this.quality = data.settings.quality || 'medium';
         this.refreshIntervalMs = data.settings.refreshInterval || 5000;
@@ -53,7 +53,7 @@ class CameraBoard {
   }
 
   setupEventListeners() {
-    // Page Visibility API - останавливаем обновление когда вкладка неактивна
+    // Page Visibility API - stop refresh when tab is inactive
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         this.stopAutoRefresh();
@@ -76,7 +76,7 @@ class CameraBoard {
       const container = this.createCameraContainer(camera);
       grid.appendChild(container);
 
-      // Загружаем preview после добавления в DOM
+      // Load preview after adding to DOM
       this.loadPreview(camera.id);
     });
   }
@@ -109,7 +109,7 @@ class CameraBoard {
           img.className = 'camera-image initial-blur fade-in';
           container.appendChild(img);
 
-          // Сразу запускаем обновление для получения свежего
+          // Immediately start refresh to get fresh image
           setTimeout(() => {
             this.loadCameraImage(cameraId, false);
           }, 200);
@@ -152,28 +152,28 @@ class CameraBoard {
         const currentImg = container.querySelector('.camera-image');
 
         if (isInitialLoad && !currentImg) {
-          // Первая загрузка - показываем с blur
+          // First load - show with blur
           container.innerHTML = '';
           newImg.className = 'camera-image initial-blur fade-in';
           container.appendChild(newImg);
 
-          // Сразу запускаем обновление для получения свежего
+          // Immediately start refresh to get fresh image
           setTimeout(() => {
             this.loadCameraImage(cameraId, false);
           }, 100);
         } else if (currentImg && currentImg.classList.contains('initial-blur')) {
-          // Второй запрос после initial - убираем blur с crossfade
+          // Second request after initial - remove blur with crossfade
           newImg.className = 'camera-image';
           container.appendChild(newImg);
 
-          // Запускаем crossfade
+          // Start crossfade
           requestAnimationFrame(() => {
             currentImg.classList.remove('initial-blur');
             currentImg.classList.add('fade-out');
             newImg.classList.add('fade-in');
           });
 
-          // Удаляем старое после анимации
+          // Remove old after animation
           setTimeout(() => {
             currentImg.remove();
             if (currentImg.src && currentImg.src.startsWith('blob:')) {
@@ -181,17 +181,17 @@ class CameraBoard {
             }
           }, 900);
         } else if (currentImg) {
-          // Обычное обновление - crossfade без blur
+          // Regular update - crossfade without blur
           newImg.className = 'camera-image';
           container.appendChild(newImg);
 
-          // Запускаем crossfade
+          // Start crossfade
           requestAnimationFrame(() => {
             currentImg.classList.add('fade-out');
             newImg.classList.add('fade-in');
           });
 
-          // Удаляем старое после анимации
+          // Remove old after animation
           setTimeout(() => {
             currentImg.remove();
             if (currentImg.src && currentImg.src.startsWith('blob:')) {
@@ -199,7 +199,7 @@ class CameraBoard {
             }
           }, 900);
         } else {
-          // Первое изображение без предыдущего
+          // First image without previous
           container.innerHTML = '';
           newImg.className = 'camera-image fade-in';
           container.appendChild(newImg);

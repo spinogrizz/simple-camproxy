@@ -1,5 +1,5 @@
 export function validateCamerasConfig(config) {
-  // Проверка наличия секций
+  // Check required sections
   if (!config.cameras || !Array.isArray(config.cameras)) {
     throw new Error('cameras.yaml: "cameras" must be an array');
   }
@@ -8,7 +8,7 @@ export function validateCamerasConfig(config) {
     throw new Error('cameras.yaml: "qualities" section is required');
   }
 
-  // Валидация пресетов качества
+  // Validate quality presets
   const requiredQualities = ['low', 'medium', 'high'];
   requiredQualities.forEach(q => {
     if (q !== 'high' && !config.qualities[q]) {
@@ -22,7 +22,7 @@ export function validateCamerasConfig(config) {
     }
   });
 
-  // Валидация камер
+  // Validate cameras
   config.cameras.forEach((camera, idx) => {
     if (!camera.id || !camera.name || !camera.type) {
       throw new Error(`cameras.yaml: Camera at index ${idx} missing required fields (id, name, type)`);
@@ -32,7 +32,7 @@ export function validateCamerasConfig(config) {
       throw new Error(`cameras.yaml: Invalid camera type "${camera.type}" for camera "${camera.id}"`);
     }
 
-    // Валидация специфичных полей
+    // Validate type-specific fields
     if (camera.type === 'unifi') {
       if (!camera.cameraId) {
         throw new Error(`cameras.yaml: UniFi camera "${camera.id}" missing cameraId`);
@@ -49,7 +49,7 @@ export function validateCamerasConfig(config) {
       if (!camera.host) {
         throw new Error(`cameras.yaml: Reolink camera "${camera.id}" missing host`);
       }
-      // username/password могут быть глобальными или локальными
+      // username/password can be global or local
       const hasGlobal = config.reolink && config.reolink.username && config.reolink.password;
       const hasLocal = camera.username && camera.password;
       if (!hasGlobal && !hasLocal) {
@@ -71,29 +71,29 @@ export function validateAccessConfig(config) {
   }
 
   config.users.forEach((user, idx) => {
-    // Проверяем обязательные поля
+    // Check required fields
     if (!user.unique_link) {
       throw new Error(`access.yaml: User at index ${idx} missing unique_link`);
     }
 
-    // allowedCameras может быть 'all' или массивом
+    // allowedCameras can be 'all' or array
     if (user.allowedCameras &&
         user.allowedCameras !== 'all' &&
         !Array.isArray(user.allowedCameras)) {
       throw new Error(`access.yaml: User "${user.unique_link}" allowedCameras must be 'all' or array`);
     }
 
-    // allowFromIPs должен быть массивом
+    // allowFromIPs must be array
     if (user.allowFromIPs && !Array.isArray(user.allowFromIPs)) {
       throw new Error(`access.yaml: User "${user.unique_link}" allowFromIPs must be an array`);
     }
 
-    // refreshInterval должен быть числом если указан
+    // refreshInterval must be number if specified
     if (user.refreshInterval && typeof user.refreshInterval !== 'number') {
       throw new Error(`access.yaml: User "${user.unique_link}" refreshInterval must be a number`);
     }
 
-    // quality должен быть одним из допустимых значений
+    // quality must be one of allowed values
     if (user.quality && !['low', 'medium', 'high'].includes(user.quality)) {
       throw new Error(`access.yaml: User "${user.unique_link}" quality must be one of: low, medium, high`);
     }

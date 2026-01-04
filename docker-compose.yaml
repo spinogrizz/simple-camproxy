@@ -7,8 +7,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # Монтируем конфигурационные файлы (read-only)
-      # :z - для SELinux систем (Fedora, RHEL, CentOS)
+      # Mount config files (read-only)
+      # :z - for SELinux systems (Fedora, RHEL, CentOS)
       - ./config:/config:ro,z
     environment:
       - NODE_ENV=production
@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
     networks:
       - camproxy-network
-    # Опционально: ограничение ресурсов
+    # Optional: resource limits
     deploy:
       resources:
         limits:

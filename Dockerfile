@@ -1,6 +1,6 @@
 FROM node:20-alpine
 
-# Устанавливаем зависимости для Sharp (обработка изображений)
+# Install dependencies for Sharp (image processing)
 RUN apk add --no-cache \
     python3 \
     make \
@@ -12,26 +12,26 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-# Копируем package.json
+# Copy package.json
 COPY package.json ./
 
-# Устанавливаем зависимости
+# Install dependencies
 RUN npm install --omit=dev
 
-# Копируем исходный код
+# Copy source code
 COPY src ./src
 
-# Создаем директорию для конфигов
+# Create config directory
 RUN mkdir -p /config
 
-# Открываем порт
+# Expose port
 EXPOSE 3000
 
-# Переменные окружения
+# Environment variables
 ENV NODE_ENV=production
 ENV CONFIG_PATH=/config
 ENV LOG_LEVEL=info
 ENV PORT=3000
 
-# Запускаем приложение
+# Start application
 CMD ["node", "src/index.js"]

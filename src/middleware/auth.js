@@ -2,7 +2,7 @@ import { logger } from '../utils/logger.js';
 
 export function authMiddleware(authService) {
   return (req, res, next) => {
-    // Извлекаем unique_link из параметров роута
+    // Extract unique_link from route params
     const uniqueLink = req.params.unique_link;
     const clientIp = req.clientIp;
 
@@ -11,7 +11,7 @@ export function authMiddleware(authService) {
       return sendAccessDenied(res, 'Invalid link');
     }
 
-    // Получаем пользователя по unique_link
+    // Get user by unique_link
     const user = authService.getUserByLink(uniqueLink);
 
     if (!user) {
@@ -19,12 +19,12 @@ export function authMiddleware(authService) {
       return sendAccessDenied(res, 'Invalid link');
     }
 
-    // Проверяем IP доступ (логирование внутри checkIpAccess)
+    // Check IP access (logging inside checkIpAccess)
     if (!authService.checkIpAccess(user, clientIp)) {
       return sendAccessDenied(res, 'Access denied from your IP address');
     }
 
-    // Аутентификация успешна
+    // Authentication successful
     req.user = user;
     next();
   };

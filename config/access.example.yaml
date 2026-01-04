@@ -1,33 +1,33 @@
 users:
-  # Родители - доступ ко всем камерам с низким качеством и редкими обновлениями
+  # Parents - access to all cameras with medium quality
   - unique_link: abc123def456ghi789jkl012
-    name: Мама и Папа      # Имя для логов (опционально)
-    refreshInterval: 5000  # Обновление каждые 5 секунд (в миллисекундах)
-    quality: medium        # Качество изображения: low, medium, high
-    allowedCameras: all    # Доступ ко всем камерам (или список ID камер)
+    name: Parents          # Name for logs (optional)
+    refreshInterval: 5000  # Update every 5 seconds (in milliseconds)
+    quality: medium        # Image quality: low, medium, high
+    allowedCameras: all    # Access to all cameras (or list of camera IDs)
     allowFromIPs:
-      - 192.168.1.0/24     # Локальная сеть (CIDR нотация)
-      - 10.0.0.0/8         # Другая локальная сеть
+      - 192.168.1.0/24     # Local network (CIDR notation)
+      - 10.0.0.0/8         # Another local network
 
-  # Пользователь с доступом к нескольким камерам
+  # User with access to multiple cameras
   - unique_link: mno345pqr678stu901vwx234
-    name: Василий
-    refreshInterval: 3000  # Обновление каждые 3 секунды
+    name: User1
+    refreshInterval: 3000  # Update every 3 seconds
     quality: low
     allowedCameras:
       - unifi-front
       - reolink-garage
     allowFromIPs:
-      - 192.168.1.100      # Конкретный IP адрес
+      - 192.168.1.100      # Specific IP address
       - 192.168.1.101
-      - 172.16.0.0/12      # CIDR маска
+      - 172.16.0.0/12      # CIDR mask
 
-  # Гость с доступом только к одной камере
+  # Guest with access to single camera
   - unique_link: yz4567890abcdef123ghijkl
-    name: Гость
-    refreshInterval: 10000  # Редкие обновления для экономии трафика
+    name: Guest
+    refreshInterval: 10000  # Rare updates to save traffic
     quality: low
     allowedCameras:
       - unifi-front
     allowFromIPs:
-      - 0.0.0.0/0          # Доступ с любого IP (небезопасно, только для примера!)
+      - 0.0.0.0/0          # Access from any IP (insecure, example only!)

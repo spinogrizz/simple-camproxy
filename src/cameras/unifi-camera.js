@@ -2,7 +2,7 @@ import axios from 'axios';
 import https from 'https';
 import { logger } from '../utils/logger.js';
 
-// HTTPS Agent для игнорирования самоподписанных сертификатов
+// HTTPS Agent to ignore self-signed certificates
 const httpsAgent = new https.Agent({
   rejectUnauthorized: false
 });

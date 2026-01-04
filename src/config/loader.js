@@ -10,21 +10,21 @@ export async function loadConfig() {
   try {
     logger.info(`Loading configuration from ${configPath}`);
 
-    // Загрузка cameras.yaml
+    // Load cameras.yaml
     const camerasYaml = await fs.readFile(
       path.join(configPath, 'cameras.yaml'),
       'utf8'
     );
     const cameras = yaml.load(camerasYaml);
 
-    // Загрузка access.yaml
+    // Load access.yaml
     const accessYaml = await fs.readFile(
       path.join(configPath, 'access.yaml'),
       'utf8'
     );
     const access = yaml.load(accessYaml);
 
-    // Валидация
+    // Validation
     validateCamerasConfig(cameras);
     validateAccessConfig(access);
 

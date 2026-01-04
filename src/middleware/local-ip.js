@@ -15,7 +15,7 @@ function getClientIp(req) {
     return req.ip;
   }
 
-  // Проверяем заголовки прокси (для работы за nginx proxy manager и т.д.)
+  // Check proxy headers (for nginx proxy manager, etc)
   const forwarded = req.headers['x-forwarded-for'];
   if (forwarded) {
     return forwarded.split(',')[0].trim();
@@ -26,6 +26,6 @@ function getClientIp(req) {
     return realIp;
   }
 
-  // Fallback на socket
+  // Fallback to socket
   return req.socket.remoteAddress || req.connection.remoteAddress || 'unknown';
 }

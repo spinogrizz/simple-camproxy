@@ -5,7 +5,7 @@ export class AuthService {
   constructor(accessConfig) {
     this.users = new Map();
 
-    // Загружаем пользователей по unique_link
+    // Load users by unique_link
     accessConfig.users.forEach(user => {
       this.users.set(user.unique_link, {
         unique_link: user.unique_link,
@@ -35,7 +35,7 @@ export class AuthService {
       return false;
     }
 
-    // Убираем IPv6 префикс если есть
+    // Remove IPv6 prefix if present
     const cleanIp = clientIp.replace(/^::ffff:/, '');
     logger.debug(`[ACCESS CHECK] User: ${user.name}, IP: ${cleanIp}, Rules: ${user.allowFromIPs.join(', ')}`);
 
@@ -43,7 +43,7 @@ export class AuthService {
       const addr = ipaddr.process(cleanIp);
 
       for (const rule of user.allowFromIPs) {
-        // Проверяем CIDR нотацию
+        // Check CIDR notation
         if (rule.includes('/')) {
           try {
             const range = ipaddr.parseCIDR(rule);
@@ -56,7 +56,7 @@ export class AuthService {
             continue;
           }
         } else {
-          // Проверяем точное совпадение IP
+          // Check exact IP match
           try {
             const ruleAddr = ipaddr.process(rule);
             if (addr.toString() === ruleAddr.toString()) {
@@ -79,12 +79,12 @@ export class AuthService {
   }
 
   isAuthorized(user, cameraId) {
-    // Пользователь с правами 'all' имеет доступ ко всем камерам
+    // User with 'all' permissions has access to all cameras
     if (user.allowedCameras === 'all') {
       return true;
     }
 
-    // Проверяем массив разрешенных камер
+    // Check allowed cameras array
     if (Array.isArray(user.allowedCameras)) {
       return user.allowedCameras.includes(cameraId);
     }

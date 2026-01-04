@@ -24,7 +24,7 @@ export class ImageService {
       image.extract({ left, top, width, height });
     }
 
-    // High quality = возвращаем как есть
+    // High quality = return as is
     if (quality === 'high') {
       if (!crop) {
         logger.debug('Quality: high (as is, no processing)');
@@ -35,7 +35,7 @@ export class ImageService {
       return image.toBuffer();
     }
 
-    // Получаем пресет для low/medium
+    // Get preset for low/medium
     const preset = this.qualityPresets[quality];
     if (!preset) {
       throw new Error(`Invalid quality preset: ${quality}`);
@@ -46,13 +46,13 @@ export class ImageService {
 
       const processed = await image
         .resize(preset.maxWidth, preset.maxHeight, {
-          fit: 'inside',  // Сохраняем пропорции
-          withoutEnlargement: true  // Не увеличиваем меньшие изображения
+          fit: 'inside',  // Keep aspect ratio
+          withoutEnlargement: true  // Don't enlarge smaller images
         })
         .jpeg({
           quality: preset.quality,
           progressive: true,
-          mozjpeg: true  // Лучшее сжатие
+          mozjpeg: true  // Better compression
         })
         .toBuffer();
 

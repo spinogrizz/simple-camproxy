@@ -4,9 +4,9 @@ import { logger } from '../utils/logger.js';
 export class CacheService {
   constructor(options = {}) {
     this.cache = new NodeCache({
-      stdTTL: options.stdTTL || 2,  // TTL по умолчанию 2 секунды
+      stdTTL: options.stdTTL || 2,  // Default TTL 2 seconds
       checkperiod: options.checkperiod || 3,
-      useClones: false  // Не клонируем буферы для производительности
+      useClones: false  // Don't clone buffers for performance
     });
 
     this.cache.on('expired', (key) => {

@@ -15,17 +15,17 @@ async function main() {
   try {
     logger.info('Starting camproxy...');
 
-    // Загрузка конфигурации
+    // Load configuration
     const config = await loadConfig();
 
-    // Инициализация сервисов
+    // Initialize services
     const cacheService = new CacheService({ stdTTL: 2, checkperiod: 3 });
     const imageService = new ImageService(config.cameras.qualities);
     const authService = new AuthService(config.access);
     const cameraManager = new CameraManager(config.cameras);
     const snapshotStorage = new SnapshotStorage();
 
-    // Создание Express приложения
+    // Create Express application
     const app = express();
     const PORT = process.env.PORT || 3000;
 
@@ -40,23 +40,22 @@ async function main() {
       logger.info('Trust proxy enabled');
     }
 
-    // Глобальные middleware
+    // Global middleware
     app.use(express.json());
     app.use(ipExtractorMiddleware());
 
-    // Статические файлы для веб-интерфейса (защищены авторизацией)
+    // Static files for web interface (protected by auth)
     app.use(express.static('src/public', {
       setHeaders: (res, path) => {
-        // Для статических файлов не применяем авторизацию здесь,
-        // она будет в роутах
+        // Auth is handled in routes
       }
     }));
 
-    // Роуты (префиксы указаны в самих роутах)
+    // Routes (prefixes defined in route files)
     app.use('/', createCameraRoutes(cameraManager, cacheService, imageService, authService, snapshotStorage));
     app.use('/', createWebRoutes(cameraManager, authService));
 
-    // Health check endpoint (без авторизации)
+    // Health check endpoint (no auth)
     app.get('/health', (req, res) => {
       const stats = cacheService.getStats();
       res.json({
@@ -66,10 +65,10 @@ async function main() {
       });
     });
 
-    // Обработка ошибок (должна быть последней)
+    // Error handler (must be last)
     app.use(errorHandler);
 
-    // Запуск сервера
+    // Start server
     app.listen(PORT, () => {
       logger.info(`camproxy listening on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV || 'production'}`);
@@ -97,5 +96,5 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-// Запуск приложения
+// Start application
 main();
