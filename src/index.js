@@ -55,6 +55,12 @@ async function main() {
     app.use('/', createCameraRoutes(cameraManager, cacheService, imageService, authService, snapshotStorage));
     app.use('/', createWebRoutes(cameraManager, authService));
 
+    // Robots.txt endpoint (no auth)
+    app.get('/robots.txt', (req, res) => {
+      res.type('text/plain');
+      res.send('User-agent: *\nDisallow: /\n');
+    });
+
     // Health check endpoint (no auth)
     app.get('/health', (req, res) => {
       const stats = cacheService.getStats();
