@@ -11,11 +11,7 @@ export function ipExtractorMiddleware() {
 }
 
 function getClientIp(req) {
-  if (req.app && req.app.get('trust proxy')) {
-    return req.ip;
-  }
-
-  // Check proxy headers (for nginx proxy manager, etc)
+  // Always check proxy headers first (for nginx proxy manager, etc)
   const forwarded = req.headers['x-forwarded-for'];
   if (forwarded) {
     return forwarded.split(',')[0].trim();
@@ -24,6 +20,11 @@ function getClientIp(req) {
   const realIp = req.headers['x-real-ip'];
   if (realIp) {
     return realIp;
+  }
+
+  // If trust proxy is enabled, use Express's req.ip
+  if (req.app && req.app.get('trust proxy')) {
+    return req.ip;
   }
 
   // Fallback to socket

@@ -15,7 +15,7 @@ services:
       - CONFIG_PATH=/config
       - LOG_LEVEL=debug
       - PORT=3000
-      - TRUST_PROXY=1
+      - TRUST_PROXY_IPS=172.16.0.0/12
     restart: unless-stopped
     networks:
       - camproxy-network
