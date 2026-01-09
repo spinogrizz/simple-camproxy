@@ -51,17 +51,12 @@ async function main() {
       }
     }));
 
-    // Routes (prefixes defined in route files)
-    app.use('/', createCameraRoutes(cameraManager, cacheService, imageService, authService, snapshotStorage));
-    app.use('/', createWebRoutes(cameraManager, authService));
-
-    // Robots.txt endpoint (no auth)
+    // Public endpoints (no auth) - must be before protected routes
     app.get('/robots.txt', (req, res) => {
       res.type('text/plain');
       res.send('User-agent: *\nDisallow: /\n');
     });
 
-    // Health check endpoint (no auth)
     app.get('/health', (req, res) => {
       const stats = cacheService.getStats();
       res.json({
@@ -70,6 +65,10 @@ async function main() {
         cache: stats
       });
     });
+
+    // Routes (prefixes defined in route files)
+    app.use('/', createCameraRoutes(cameraManager, cacheService, imageService, authService, snapshotStorage));
+    app.use('/', createWebRoutes(cameraManager, authService));
 
     // Error handler (must be last)
     app.use(errorHandler);
