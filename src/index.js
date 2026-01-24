@@ -1,6 +1,6 @@
 import express from 'express';
 import { loadConfig } from './config/loader.js';
-import { CameraManager } from './cameras/camera-manager.js';
+import { CameraManager } from './cameras/index.js';
 import { CacheService } from './services/cache-service.js';
 import { ImageService } from './services/image-service.js';
 import { AuthService } from './services/auth-service.js';

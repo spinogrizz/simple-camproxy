@@ -25,7 +25,7 @@ export async function loadConfig() {
     const access = yaml.load(accessYaml);
 
     // Validation
-    validateCamerasConfig(cameras);
+    await validateCamerasConfig(cameras);
     validateAccessConfig(access);
 
     logger.info(`Configuration loaded successfully: ${cameras.cameras.length} cameras, ${access.users.length} users`);

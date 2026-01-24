@@ -1,17 +1,27 @@
 # simple-camproxy
 
-Proxy server for IP cameras. Takes snapshots from UniFi Protect and Reolink cameras, resizes them, and caches results. Built for home automation dashboards and remote access.
+Proxy server for IP cameras. Takes snapshots, resizes them, and caches results. Built for home automation dashboards and remote access.
 
 <a href="sample.jpg"><img src="sample.jpg" align="left" width="150" alt="Example"></a>
 <br clear="left">
 
 ## Features
 
-- Multi-camera support (UniFi Protect, Reolink)
+- Multi-vendor camera support
 - Quality presets (low/medium/high)
 - Local IP bypass (no auth needed from 192.168.x.x, etc)
 - Per-user access control via unique links
 - Web dashboard with live feed
+
+## Supported Cameras
+
+| Type | Auth | Notes |
+|------|------|-------|
+| **UniFi Protect** | API Key | Requires `cameraId` from UniFi console |
+| **Reolink** | Basic | HTTP API with credentials in URL |
+| **Dahua** | Digest | Standard Dahua CGI interface |
+| **Hikvision** | Basic | ISAPI streaming endpoint |
+| **IPtronic** | Basic | Simple `/snap.jpg` endpoint |
 
 ## Configuration
 
@@ -25,11 +35,12 @@ cp config/access.example.yaml config/access.yaml
 Edit cameras.yaml with your setup:
 
 ```yaml
+# Global credentials (optional, can override per-camera)
 unifi:
   baseUrl: https://10.42.0.1
   apiKey: your-api-key
 
-reolink:
+dahua:
   username: admin
   password: password
 
@@ -41,8 +52,16 @@ cameras:
 
   - id: garage
     name: Garage
-    type: reolink
+    type: dahua
     host: 192.168.1.101
+    channel: 1  # optional
+
+  - id: backyard
+    name: Backyard
+    type: hikvision
+    host: 192.168.1.102
+    username: admin        # per-camera credentials
+    password: secret123
 ```
 
 Edit access.yaml for users:

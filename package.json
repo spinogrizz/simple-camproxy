@@ -13,6 +13,9 @@
     "proxy",
     "unifi",
     "reolink",
+    "dahua",
+    "hikvision",
+    "iptronic",
     "snapshot"
   ],
   "author": "",
