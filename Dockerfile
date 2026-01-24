@@ -1,37 +1,30 @@
-FROM node:20-alpine
+# Build stage
+FROM node:20-alpine AS builder
 
-# Install dependencies for Sharp (image processing)
-RUN apk add -v --no-cache \
-    python3 \
-    make \
-    g++ \
-    cairo-dev \
-    jpeg-dev \
-    pango-dev \
-    giflib-dev
+RUN apk add --no-cache python3 make g++ cairo-dev jpeg-dev pango-dev giflib-dev
 
 WORKDIR /app
-
-# Copy package.json
 COPY package.json ./
-
-# Install dependencies
 RUN npm install --omit=dev
 
-# Copy source code
-COPY src ./src
+# Runtime stage
+FROM node:20-alpine
 
-# Create config directory
+# Only runtime libraries (no -dev headers)
+RUN apk add --no-cache cairo jpeg pango giflib vips
+
+WORKDIR /app
+COPY --from=builder /app/node_modules ./node_modules
+COPY src ./src
+COPY package.json ./
+
 RUN mkdir -p /config
 
-# Expose port
 EXPOSE 3000
 
-# Environment variables
 ENV NODE_ENV=production
 ENV CONFIG_PATH=/config
 ENV LOG_LEVEL=info
 ENV PORT=3000
 
-# Start application
 CMD ["node", "src/index.js"]
