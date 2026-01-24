@@ -96,7 +96,7 @@ docker-compose up -d
 Get snapshot:
 ```
 GET /camera/:id/:quality
-GET /camera/:id/:quality?crop=x,y,width,height
+GET /camera/:id/:quality?crop=x,y,width,height&rotate=degrees
 GET /:unique_link/camera/:id/:quality
 ```
 
@@ -110,6 +110,7 @@ Examples:
 ```bash
 curl http://localhost:3000/camera/front-door/medium > snapshot.jpg
 curl http://localhost:3000/camera/garage/low?crop=100,100,800,600 > cropped.jpg
+curl http://localhost:3000/camera/garage/high?rotate=2.5&crop=50,50,1000,800 > corrected.jpg
 curl http://server:3000/admin-secret-link/camera/front-door/high > snapshot.jpg
 curl http://localhost:3000/admin-secret-link/api/cameras
 ```
@@ -118,7 +119,8 @@ curl http://localhost:3000/admin-secret-link/api/cameras
 
 - `id` - camera ID from config
 - `quality` - low, medium, high
-- `crop` - optional, format: x,y,width,height (crop before resize)
+- `crop` - optional, format: x,y,width,height (applied after rotate)
+- `rotate` - optional, rotation angle in degrees (-45 to 45)
 
 ## Environment
 

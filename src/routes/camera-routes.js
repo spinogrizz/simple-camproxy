@@ -33,11 +33,33 @@ export function createCameraRoutes(cameraManager, cacheService, imageService, au
     return { left, top, width, height, key: `${left},${top},${width},${height}` };
   }
 
+  function parseRotateParam(rotateParam) {
+    if (!rotateParam) {
+      return null;
+    }
+
+    const raw = Array.isArray(rotateParam) ? rotateParam[0] : rotateParam;
+    const angle = Number(raw);
+
+    if (!Number.isFinite(angle)) {
+      throw new Error('Invalid rotate parameter. Use rotate=degrees (e.g. rotate=2.5)');
+    }
+
+    // Limit to reasonable range for corrections
+    if (angle < -45 || angle > 45) {
+      throw new Error('Invalid rotate parameter. Must be between -45 and 45 degrees');
+    }
+
+    return angle;
+  }
+
   router.get('/:unique_link/camera/:id/:quality', authMiddleware(authService), async (req, res, next) => {
     try {
       const { id, quality } = req.params;
       const crop = parseCropParam(req.query.crop);
+      const rotate = parseRotateParam(req.query.rotate);
       const cropKey = crop ? crop.key : null;
+      const rotateKey = rotate !== null ? rotate.toString() : null;
 
       // Validate quality
       const validQualities = ['low', 'medium', 'high'];
@@ -50,9 +72,9 @@ export function createCameraRoutes(cameraManager, cacheService, imageService, au
         throw new Error(`Unauthorized: No access to camera "${id}"`);
       }
 
-      // Check cache
-      if (!crop) {
-        const cached = cacheService.get(id, quality, cropKey);
+      // Check cache (only for requests without crop/rotate)
+      if (!crop && rotate === null) {
+        const cached = cacheService.get(id, quality, null);
         if (cached) {
           logger.debug(`Cache hit: ${id}:${quality}`);
           res.setHeader('Content-Type', 'image/jpeg');
@@ -68,15 +90,15 @@ export function createCameraRoutes(cameraManager, cacheService, imageService, au
       const rawSnapshot = await cameraManager.getSnapshot(id);
 
       // Process image (high quality returns as is)
-      const processedSnapshot = await imageService.processImage(rawSnapshot, quality, crop);
+      const processedSnapshot = await imageService.processImage(rawSnapshot, quality, { crop, rotate });
 
-      // Cache result
-      if (!crop) {
-        cacheService.set(id, quality, cropKey, processedSnapshot);
+      // Cache result (only for requests without crop/rotate)
+      if (!crop && rotate === null) {
+        cacheService.set(id, quality, null, processedSnapshot);
       }
 
-      // Save to file for preview
-      if (snapshotStorage && !crop) {
+      // Save to file for preview (only for requests without crop/rotate)
+      if (snapshotStorage && !crop && rotate === null) {
         snapshotStorage.save(id, quality, processedSnapshot).catch(err => {
           logger.error('Failed to save snapshot to storage:', err.message);
         });

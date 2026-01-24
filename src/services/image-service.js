@@ -7,11 +7,26 @@ export class ImageService {
     logger.info('Image service initialized');
   }
 
-  async processImage(imageBuffer, quality, crop) {
+  async processImage(imageBuffer, quality, options = {}) {
+    const { crop, rotate } = options;
     const image = sharp(imageBuffer);
 
+    // Rotate first (before crop) - fills corners with black
+    if (rotate !== null && rotate !== undefined) {
+      logger.debug(`Rotating image by ${rotate} degrees`);
+      image.rotate(rotate, { background: { r: 0, g: 0, b: 0 } });
+    }
+
     if (crop) {
-      const metadata = await image.metadata();
+      // Need fresh metadata after rotation
+      const rotatedBuffer = rotate !== null && rotate !== undefined
+        ? await image.toBuffer()
+        : imageBuffer;
+      const rotatedImage = rotate !== null && rotate !== undefined
+        ? sharp(rotatedBuffer)
+        : image;
+
+      const metadata = await rotatedImage.metadata();
       if (!metadata.width || !metadata.height) {
         throw new Error('Invalid image');
       }
@@ -21,21 +36,33 @@ export class ImageService {
         throw new Error('Invalid crop parameter: out of bounds');
       }
 
-      image.extract({ left, top, width, height });
+      rotatedImage.extract({ left, top, width, height });
+
+      // High quality with crop/rotate
+      if (quality === 'high') {
+        logger.debug('Quality: high with transformations');
+        return rotatedImage.toBuffer();
+      }
+
+      // Continue with resize using the cropped image
+      return this._resizeAndCompress(rotatedImage, quality);
     }
 
-    // High quality = return as is
+    // High quality = return as is (no crop, no rotate)
     if (quality === 'high') {
-      if (!crop) {
+      if (rotate === null || rotate === undefined) {
         logger.debug('Quality: high (as is, no processing)');
         return imageBuffer;
       }
 
-      logger.debug('Quality: high with crop (no resize)');
+      logger.debug('Quality: high with rotation only');
       return image.toBuffer();
     }
 
-    // Get preset for low/medium
+    return this._resizeAndCompress(image, quality);
+  }
+
+  async _resizeAndCompress(image, quality) {
     const preset = this.qualityPresets[quality];
     if (!preset) {
       throw new Error(`Invalid quality preset: ${quality}`);
@@ -46,17 +73,15 @@ export class ImageService {
 
       const processed = await image
         .resize(preset.maxWidth, preset.maxHeight, {
-          fit: 'inside',  // Keep aspect ratio
-          withoutEnlargement: true  // Don't enlarge smaller images
+          fit: 'inside',
+          withoutEnlargement: true
         })
         .jpeg({
           quality: preset.quality,
           progressive: true,
-          mozjpeg: true  // Better compression
+          mozjpeg: true
         })
         .toBuffer();
-
-      logger.debug(`Image processed: ${imageBuffer.length} -> ${processed.length} bytes (${Math.round((1 - processed.length / imageBuffer.length) * 100)}% reduction)`);
 
       return processed;
     } catch (error) {
