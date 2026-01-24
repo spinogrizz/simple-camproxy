@@ -1,5 +1,8 @@
 import { fetchUnifiSnapshot } from './unifi-camera.js';
 import { fetchReolinkSnapshot } from './reolink-camera.js';
+import { fetchDahuaSnapshot } from './dahua-camera.js';
+import { fetchHikvisionSnapshot } from './hikvision-camera.js';
+import { fetchIptronicSnapshot } from './iptronic-camera.js';
 import { logger } from '../utils/logger.js';
 
 export class CameraManager {
@@ -25,12 +28,19 @@ export class CameraManager {
     logger.debug(`Getting snapshot for camera: ${id} (${camera.type})`);
 
     // Route to appropriate function based on camera type
-    if (camera.type === 'unifi') {
-      return fetchUnifiSnapshot(this.config, camera.cameraId);
-    } else if (camera.type === 'reolink') {
-      return fetchReolinkSnapshot(this.config, camera);
-    } else {
-      throw new Error(`Unknown camera type: ${camera.type}`);
+    switch (camera.type) {
+      case 'unifi':
+        return fetchUnifiSnapshot(this.config, camera.cameraId);
+      case 'reolink':
+        return fetchReolinkSnapshot(this.config, camera);
+      case 'dahua':
+        return fetchDahuaSnapshot(this.config, camera);
+      case 'hikvision':
+        return fetchHikvisionSnapshot(this.config, camera);
+      case 'iptronic':
+        return fetchIptronicSnapshot(this.config, camera);
+      default:
+        throw new Error(`Unknown camera type: ${camera.type}`);
     }
   }
 

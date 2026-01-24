@@ -28,7 +28,8 @@ export function validateCamerasConfig(config) {
       throw new Error(`cameras.yaml: Camera at index ${idx} missing required fields (id, name, type)`);
     }
 
-    if (!['unifi', 'reolink'].includes(camera.type)) {
+    const validTypes = ['unifi', 'reolink', 'dahua', 'hikvision', 'iptronic'];
+    if (!validTypes.includes(camera.type)) {
       throw new Error(`cameras.yaml: Invalid camera type "${camera.type}" for camera "${camera.id}"`);
     }
 
@@ -49,11 +50,43 @@ export function validateCamerasConfig(config) {
       if (!camera.host) {
         throw new Error(`cameras.yaml: Reolink camera "${camera.id}" missing host`);
       }
-      // username/password can be global or local
       const hasGlobal = config.reolink && config.reolink.username && config.reolink.password;
       const hasLocal = camera.username && camera.password;
       if (!hasGlobal && !hasLocal) {
         throw new Error(`cameras.yaml: Reolink camera "${camera.id}" must have username/password either globally or locally`);
+      }
+    }
+
+    if (camera.type === 'dahua') {
+      if (!camera.host) {
+        throw new Error(`cameras.yaml: Dahua camera "${camera.id}" missing host`);
+      }
+      const hasGlobal = config.dahua && config.dahua.username && config.dahua.password;
+      const hasLocal = camera.username && camera.password;
+      if (!hasGlobal && !hasLocal) {
+        throw new Error(`cameras.yaml: Dahua camera "${camera.id}" must have username/password either globally or locally`);
+      }
+    }
+
+    if (camera.type === 'hikvision') {
+      if (!camera.host) {
+        throw new Error(`cameras.yaml: Hikvision camera "${camera.id}" missing host`);
+      }
+      const hasGlobal = config.hikvision && config.hikvision.username && config.hikvision.password;
+      const hasLocal = camera.username && camera.password;
+      if (!hasGlobal && !hasLocal) {
+        throw new Error(`cameras.yaml: Hikvision camera "${camera.id}" must have username/password either globally or locally`);
+      }
+    }
+
+    if (camera.type === 'iptronic') {
+      if (!camera.host) {
+        throw new Error(`cameras.yaml: IPtronic camera "${camera.id}" missing host`);
+      }
+      const hasGlobal = config.iptronic && config.iptronic.username && config.iptronic.password;
+      const hasLocal = camera.username && camera.password;
+      if (!hasGlobal && !hasLocal) {
+        throw new Error(`cameras.yaml: IPtronic camera "${camera.id}" must have username/password either globally or locally`);
       }
     }
   });

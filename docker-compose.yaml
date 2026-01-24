@@ -1,8 +1,8 @@
-version: '3.8'
+
 
 services:
   camproxy:
-    build: .
+    image: spinogrizz/simple-camproxy:latest
     container_name: camproxy
     ports:
       - "3000:3000"

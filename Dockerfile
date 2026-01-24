@@ -1,7 +1,7 @@
 FROM node:20-alpine
 
 # Install dependencies for Sharp (image processing)
-RUN apk add --no-cache \
+RUN apk add -v --no-cache \
     python3 \
     make \
     g++ \
