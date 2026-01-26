@@ -20,7 +20,8 @@ export default class UnifiCamera extends BaseCamera {
   async fetchSnapshot() {
     try {
       const { baseUrl, apiKey } = this.config.unifi;
-      const url = `${baseUrl}/proxy/protect/integration/v1/cameras/${this.camera.cameraId}/snapshot`;
+      const highQuality = this.camera.highQuality ?? this.config.unifi.highQuality ?? false;
+      const url = `${baseUrl}/proxy/protect/integration/v1/cameras/${this.camera.cameraId}/snapshot?highQuality=${highQuality}`;
 
       logger.debug(`Fetching UniFi snapshot from ${url}`);
 
@@ -37,7 +38,7 @@ export default class UnifiCamera extends BaseCamera {
       return response.data;
     } catch (error) {
       logger.error(`Failed to fetch UniFi snapshot for camera ${this.camera.id}:`, error.message);
-      throw new Error(`Camera unavailable: ${error.message}`);
+      throw new Error(`Camera unavailable: ${error.message}, ${error.response?.data}`);
     }
   }
 }
