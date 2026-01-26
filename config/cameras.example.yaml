@@ -48,3 +48,14 @@ cameras:
     host: 192.168.1.102
     username: custom-user
     password: custom-password
+
+  # RTSP camera with separate credentials
+  - id: rtsp-parking
+    name: Parking
+    type: rtsp
+    url: rtsp://192.168.1.104:554/cam/realmonitor
+    username: admin
+    password: camera-password
+    transport: tcp  # tcp (default) or udp
+
+

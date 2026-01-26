@@ -11,7 +11,7 @@ RUN npm install --omit=dev
 FROM node:20-alpine
 
 # Only runtime libraries (no -dev headers)
-RUN apk add --no-cache cairo jpeg pango giflib vips
+RUN apk add --no-cache cairo jpeg pango giflib vips ffmpeg
 
 WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules

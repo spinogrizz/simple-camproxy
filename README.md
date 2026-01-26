@@ -22,6 +22,7 @@ Proxy server for IP cameras. Takes snapshots, resizes them, and caches results. 
 | **Dahua** | Digest | Standard Dahua CGI interface |
 | **Hikvision** | Basic | ISAPI streaming endpoint |
 | **IPtronic** | Basic | Simple `/snap.jpg` endpoint |
+| **RTSP/RTSPS** | Basic | Any RTSP stream (requires ffmpeg) |
 
 ## Configuration
 
@@ -62,6 +63,14 @@ cameras:
     host: 192.168.1.102
     username: admin        # per-camera credentials
     password: secret123
+
+  - id: parking
+    name: Parking Lot
+    type: rtsp
+    url: rtsp://192.168.1.103:554/stream1
+    username: admin
+    password: rtsp-pass
+    transport: tcp         # tcp (default) or udp
 ```
 
 Edit access.yaml for users:
